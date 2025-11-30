@@ -1,4 +1,9 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { cookies } from "next/headers";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/custom/app-sidebar";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import type { Metadata } from "next";
@@ -20,11 +25,13 @@ export const metadata: Metadata = {
   description: "trying things out",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -36,12 +43,22 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider>
+          <SidebarProvider
+            defaultOpen={defaultOpen}
+            style={
+              {
+                "--sidebar-width": "9rem",
+                "--sidebar-width-mobile": "10rem",
+              } as React.CSSProperties
+            }
+          >
             <AppSidebar />
-            <main>
-              <SidebarTrigger />
-              {children}
-            </main>
+            <SidebarInset>
+              <main>
+                <SidebarTrigger className="ml-1 mt-1" />
+                {children}
+              </main>
+            </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>
       </body>
